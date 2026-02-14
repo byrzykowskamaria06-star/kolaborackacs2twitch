@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CS2 x Twitch — Get Prize</title>
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: rgba(255,255,255,.06);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --radius: 22px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1000px 500px at 20% 10%, rgba(99,102,241,.35), transparent 55%),
+        radial-gradient(900px 500px at 90% 20%, rgba(34,197,94,.18), transparent 50%),
+        radial-gradient(900px 700px at 30% 90%, rgba(245,158,11,.15), transparent 55%),
+        var(--bg);
+      padding: 22px;
+    }
+
+    .wrap{
+      width: min(1100px, 96vw);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 30px 80px rgba(0,0,0,.45);
+      overflow:hidden;
+    }
+
+    /* ===== TICKER (PASEK KOMENTARZY) ===== */
+    .ticker{
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.22);
+      overflow:hidden;
+      padding: 12px 0; /* grubszy pasek */
+      position: relative;
+    }
+    .ticker::before,
+    .ticker::after{
+      content:"";
+      position:absolute;
+      top:0; bottom:0;
+      width: 80px;
+      pointer-events:none;
+      z-index: 2;
+    }
+    .ticker::before{
+      left:0;
+      background: linear-gradient(90deg, rgba(0,0,0,.45), transparent);
+    }
+    .ticker::after{
+      right:0;
+      background: linear-gradient(270deg, rgba(0,0,0,.45), transparent);
+    }
+
+    .ticker-track{
+      display:flex;
+      width: max-content;
+      gap: 14px;
+      white-space: nowrap;
+      will-change: transform;
+      animation: tickerMove 22s linear infinite;
+      transform: translateX(0); /* start: od razu widoczny */
+    }
+    /* przesuwamy o połowę, bo treść jest podwojona */
+    @keyframes tickerMove{
+      from{ transform: translateX(0); }
+      to{ transform: translateX(-50%); }
+    }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.90);
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .chip small{
+      font-weight: 700;
+      opacity:.75;
+      font-size: 13px;
+    }
+    .chip .dot{
+      width:10px;height:10px;border-radius:999px;
+      background: rgba(34,197,94,.9);
+      box-shadow: 0 0 0 6px rgba(34,197,94,.10);
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 16px 18px;
+      background: rgba(0,0,0,.22);
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+
+    .badge{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(139,92,246,.18);
+      border: 1px solid rgba(139,92,246,.35);
+      color: rgba(255,255,255,.90);
+      white-space:nowrap;
+    }
+
+    .main{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 18px;
+      padding: 22px;
+    }
+    @media (max-width: 900px){
+      .main{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
+      padding: 22px;
+    }
+
+    h1{
+      margin: 10px 0 10px 0;
+      font-size: clamp(26px, 3vw, 38px);
+      letter-spacing: .2px;
+      line-height: 1.15;
+    }
+    p{
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+      max-width: 55ch;
+    }
+
+    .form{
+      margin-top: 18px;
+      display:flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .input{
+      flex: 1 1 260px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+    }
+    .input span{
+      font-size: 12px;
+      color: rgba(255,255,255,.70);
+      white-space: nowrap;
+    }
+    input{
+      width: 100%;
+      border: 0;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font-weight: 900;
+      letter-spacing: .6px;
+      font-size: 16px;
+      text-transform: uppercase;
+    }
+
+    button{
+      appearance:none;
+      border: 1px solid rgba(139,92,246,.40);
+      background: rgba(139,92,246,.22);
+      color: var(--text);
+      padding: 13px 18px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-weight: 950;
+      letter-spacing: .2px;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+      min-width: 150px;
+    }
+    button:hover{
+      background: rgba(139,92,246,.28);
+      border-color: rgba(139,92,246,.55);
+    }
+    button:active{ transform: translateY(1px); }
+
+    .error{
+      margin-top: 12px;
+      display:none;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(239,68,68,.38);
+      background: rgba(239,68,68,.14);
+      color: rgba(255,255,255,.92);
+      font-weight: 800;
+    }
+
+    .right{
+      display:grid;
+      gap: 14px;
+      align-content: start;
+    }
+    .img{
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(700px 340px at 40% 30%, rgba(59,130,246,.18), transparent 55%),
+        radial-gradient(700px 340px at 70% 60%, rgba(34,197,94,.12), transparent 55%),
+        rgba(0,0,0,.22);
+      height: 320px;
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+    }
+    .img img{
+      max-width: 88%;
+      max-height: 88%;
+      object-fit: contain;
+      filter: drop-shadow(0 18px 40px rgba(0,0,0,.45));
+    }
+
+    .mini{
+      display:grid;
+      gap: 10px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .tile{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      padding: 14px;
+    }
+    .tile b{ display:block; font-size: 13px; }
+    .tile small{ color: var(--muted); font-size: 12px; line-height: 1.35; display:block; margin-top: 6px; }
+
+    @media (prefers-reduced-motion: reduce){
+      .ticker-track{ animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- ✅ Pasek komentarzy: od razu widoczny i jedzie w lewo -->
+    <div class="ticker" aria-label="Komentarze użytkowników">
+      <div class="ticker-track">
+        <!-- ZESTAW 1 -->
+        <span class="chip"><span class="dot"></span> Kacper <small>„Wbiłem kod i działa!”</small></span>
+        <span class="chip"><span class="dot"></span> Ola <small>„Mega event, polecam.”</small></span>
+        <span class="chip"><span class="dot"></span> Mateusz <small>„Get Prize → od razu do skrzynki.”</small></span>
+        <span class="chip"><span class="dot"></span> Zuzia <small>„Kod CS2TW działa bez problemu.”</small></span>
+        <span class="chip"><span class="dot"></span> Bartek <small>„Fajny klimat strony.”</small></span>
+
+        <!-- ZESTAW 2 (kopiuj 1:1, żeby przewijanie było ciągłe) -->
+        <span class="chip"><span class="dot"></span> Kacper <small>„Wbiłem kod i działa!”</small></span>
+        <span class="chip"><span class="dot"></span> Ola <small>„Mega event, polecam.”</small></span>
+        <span class="chip"><span class="dot"></span> Mateusz <small>„Get Prize → od razu do skrzynki.”</small></span>
+        <span class="chip"><span class="dot"></span> Zuzia <small>„Kod CS2TW działa bez problemu.”</small></span>
+        <span class="chip"><span class="dot"></span> Bartek <small>„Fajny klimat strony.”</small></span>
+      </div>
+    </div>
+
+    <div class="topbar">
+      <div class="badge">LIMITED TIME EVENT</div>
+      <div style="opacity:.7;font-weight:800;font-size:12px">CS2 × Twitch</div>
+    </div>
+
+    <div class="main">
+      <section class="card">
+        <h1>Exclusive CS2 Skin Drop</h1>
+        <p>
+          Wpisz kod promocyjny i kliknij <b>Get Prize</b>.
+          Jeśli kod jest poprawny, przeniesiemy Cię do losowania.
+        </p>
+
+        <div class="form">
+          <div class="input">
+            <span>Kod:</span>
+            <input id="code" value="CS2TW" autocomplete="off" spellcheck="false" />
+          </div>
+          <button id="goBtn">Get Prize</button>
+        </div>
+
+        <div class="error" id="err">Zły kod promocyjny</div>
+      </section>
+
+      <aside class="right">
+        <div class="img">
+          <img src="Butterfly Knife  Lore.png" alt="Preview">
+        </div>
+
+        <div class="mini">
+          <div class="tile">
+            <b>Get a code</b>
+            <small>Oglądaj streamy i odbierz kod.</small>
+          </div>
+          <div class="tile">
+            <b>Apply code</b>
+            <small>Wpisz go tutaj i kliknij Get Prize.</small>
+          </div>
+          <div class="tile">
+            <b>Get your prize</b>
+            <small>Przejdziesz do losowania skinów.</small>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const ROLLER_URL = "index.html";
+    const REQUIRED_CODE = "CS2TW";
+
+    const codeEl = document.getElementById("code");
+    const goBtn = document.getElementById("goBtn");
+    const err = document.getElementById("err");
+
+    function normalize(v){
+      return String(v || "").trim().toUpperCase();
+    }
+
+    function showError(on){
+      err.style.display = on ? "block" : "none";
+    }
+
+    goBtn.addEventListener("click", () => {
+      const code = normalize(codeEl.value);
+
+      if (code !== REQUIRED_CODE){
+        showError(true);
+        return;
+      }
+
+      showError(false);
+
+      try { localStorage.setItem("promo_code", code); } catch(e) {}
+      window.location.href = ROLLER_URL;
+    });
+
+    codeEl.addEventListener("input", () => showError(false));
+  </script>
+</body>
+</html>
